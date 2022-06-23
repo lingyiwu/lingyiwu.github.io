@@ -83,7 +83,7 @@ ul li p {
 }
 
 .jumbotron {
-	margin-top: 80px;
+	margin-top: 6rem;
 	background-color: #3ab598 !important;
 }
 .jumbotron h2 {
@@ -148,4 +148,7 @@ ul li p {
 
 div .card {
 	margin-bottom: 30px;
+}
+.card-title small {
+	color: #999;
 }
