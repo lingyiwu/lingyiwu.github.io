@@ -152,3 +152,9 @@ div .card {
 .card-title small {
 	color: #999;
 }
+
+.toggle {
+	color: #007bff;
+	text-decoration: underline;
+	cursor: pointer;
+}
