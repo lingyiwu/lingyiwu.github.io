@@ -12,11 +12,11 @@
 		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 		<script>
-			$(document).ready(function(){
-				$('#toggle-frog').click(function() {
-					$('#frog').toggle("slide");
-				});
-			});
+			// $(document).ready(function(){
+			// 	$('#toggle-frog').click(function() {
+			// 		$('#frog').toggle("slide");
+			// 	});
+			// });
 		</script>
 		<!-- <link rel="icon" href="static/img/favicon.png"> -->
 		<!-- <link rel="apple-touch-icon" href="static/img/apple-touch-icon.png"> -->
@@ -25,7 +25,7 @@
 		<div class="container">
 			<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
 				<div class="container">
-					<h1 class="navbar-brand">lingyiwu</h1>
+					<h1 class="navbar-brand"><a class="nav-link active" id="home-button" href=".">lingyiwu</a></h1>
 					<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
 						<span class="navbar-toggler-icon"></span>
 					</button>
@@ -47,7 +47,7 @@
 					</div>
 				</div> <!-- end class="jumbotron bg-cover" -->
 				<h3 class="section-title">About</h3>
-				<p class="lead">Hi, I'm Anne Ling-Yi Wu! I'm a senior at Kaohsiung American School, in Kaohsiung, Taiwan. I've been studying code since seventh grade.</p>
+				<p class="lead">Hi, I'm Ling-Yi Wu! I'm a freshman at the California Institute of Technology, and I've been studying code since seventh grade.</p>
 				<!-- , and Making Websites Is My Passion <span class="toggle" id="toggle-frog">(insert badly drawn frog)</span>.</p>
 				<div id="frog" style="display: none;">
 					<center>
@@ -59,30 +59,7 @@
 				</div> -->
 				<p class="lead">Below are a few examples of my coding projects:</p>
 				<br/>
-				<h3 class="section-title">Completed projects</h3>
-				<div class="row">
-					<div class="col-lg-4">
-						<div class="card">
-							<img src="static/img/thetruthaboutclimatechange.jpg" class="card-img-top" alt="Two hands cupping a globe.">
-							<div class="card-body">
-								<h5 class="card-title text-primary">The Truth About Climate Change<br/><small>(7th grade, school project)</small></h5>
-								<p class="card-text">Climate change's causes, effects, &amp; mitigation</p>
-								<a target="_blank" href="../thetruthaboutclimatechange/" class="btn btn-primary">Open</a>
-							</div>
-						</div>
-					</div> <!-- end class="col-lg-4" -->
-					<div class="col-lg-4">
-						<div class="card">
-							<img src="static/img/fortuneseeker.png" class="card-img-top" alt="A hand cupping a bag of money.">
-							<div class="card-body">
-								<h5 class="card-title text-primary">FortuneSeeker<br/><small>(11th grade, extracurricular)</small></h5>
-								<p class="card-text">Stock simulator with asset analysis &amp; 900+ stocks!</p>
-								<a target="_blank" href="http://fortune-seeker.herokuapp.com" class="btn btn-primary">Open</a>
-							</div>
-						</div>
-					</div> <!-- end class="col-lg-4" -->
-				</div> <!-- end class="row" -->
-				<h3 class="section-title">Ongoing</h3>
+				<h3 class="section-title">Ongoing projects</h3>
 				<div class="row">
 					<div class="col-lg-4">
 						<div class="card">
@@ -92,6 +69,58 @@
 								<p class="card-text">Stores transcripts of podcast episodes; forked from <a href="https://snarp.github.io/magnus_archives_transcripts/" target="_blank">snarp</a></p>
 								<p class="card-text">Note: This is hosted on a separate Github account to avoid getting doxxed.</p>
 								<a target="_blank" href="https://ghostwires.github.io/transcripts" class="btn btn-primary">Open</a>
+							</div>
+						</div>
+					</div> <!-- end class="col-lg-4" -->
+				</div>
+				<h3 class="section-title">Completed projects</h3>
+				<div class="row">
+					<div class="col-lg-4">
+						<div class="card">
+							<img src="static/img/webb_clipart.jpg" class="card-img-top" alt="The James Webb Telescope mirror, which has a yellow honeycomb pattern.">
+							<div class="card-body">
+								<h5 class="card-title text-primary">Webb Wonderland<br/><small>(11th grade, NASA SpaceApps competition)</small></h5>
+								<p class="card-text">Twine game demo where you play as the designer of the Webb telescope!</p>
+								<a target="_blank" href="https://webbwonderland.github.io/" class="btn btn-primary">Open</a>
+							</div>
+						</div>
+					</div> <!-- end class="col-lg-4" -->
+					<div class="col-lg-4">
+						<div class="card">
+							<img src="static/img/fortuneseeker.png" class="card-img-top" alt="A hand cupping a bag of money.">
+							<div class="card-body">
+								<h5 class="card-title text-primary">FortuneSeeker<br/><small>(11th grade, extracurricular exercise)</small></h5>
+								<p class="card-text">Stock simulator with asset analysis &amp; 900+ stocks!</p>
+								<a target="_blank" href="https://fortuneseeker.onrender.com/" class="btn btn-primary">Open</a>
+							</div>
+						</div>
+					</div> <!-- end class="col-lg-4" -->
+					<div class="col-lg-4">
+						<div class="card">
+							<img src="static/img/hangman.png" class="card-img-top" alt="A game of Hangman, showing an empty gallows along with eight blanks for letters and an alphabet keyboard.">
+							<div class="card-body">
+								<h5 class="card-title text-primary">Hangman<br/><small>(10th grade, school project)</small></h5>
+								<p class="card-text">A Java.Swing clone of the classic game Hangman. The link below leads to a page with source code, some screenshots, and a download link!</p>
+								<a target="_blank" href="./hangman" class="btn btn-primary">Open</a>
+							</div>
+						</div>
+					</div> <!-- end class="col-lg-4" -->
+					<div class="col-lg-4">
+						<div class="card">
+							<img src="static/img/journey.png" class="card-img-top" alt="The Choice of Games logo, which looks like a black circular maze on a beige background.">
+							<div class="card-body">
+								<h5 class="card-title text-primary">Journey (demo)<br/><small>(10th grade, Personal Project)</small></h5>
+								<a target="_blank" href="https://dashingdon.com/play/annwu23/journey/mygame/" class="btn btn-primary">Open</a>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-4">
+						<div class="card">
+							<img src="static/img/thetruthaboutclimatechange.jpg" class="card-img-top" alt="Two hands cupping a globe.">
+							<div class="card-body">
+								<h5 class="card-title text-primary">The Truth About Climate Change<br/><small>(7th grade, school project)</small></h5>
+								<p class="card-text">Climate change's causes, effects, &amp; mitigation</p>
+								<a target="_blank" href="../thetruthaboutclimatechange/" class="btn btn-primary">Open</a>
 							</div>
 						</div>
 					</div> <!-- end class="col-lg-4" -->

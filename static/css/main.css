@@ -1,9 +1,14 @@
-body, button, html, input, select, textarea {
-	font-family: "Microsoft JhengHei";
+body, html, input, select, textarea {
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
 	line-height: 1.65;
 }
 
-h1, h2, h3, h4, h5, h6 {
+button {
+	font-family: Verdana, Geneva, Tahoma, sans-serif !important;
+	line-height: 1.65;
+}
+
+h1, h2, h3 {
 	font-weight: 400;
 }
 h1.header-title {
@@ -25,6 +30,24 @@ h3.section-title {
 pre code {
 	font-size: 18px !important;
 	padding-left: -80px;
+}
+/* for code line numbers */
+.hljs-ln td.hljs-ln-numbers {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	text-align: center;
+	color: #eee !important;
+	border-right: 1px solid #eee;
+	vertical-align: top;
+	padding-right: 5px;
+}
+/* for code text */
+.hljs-ln td.hljs-ln-code {
+	padding-left: 10px;
 }
 
 .navbar-brand {
@@ -51,6 +74,10 @@ a:hover {
 /*.page-section {
 	padding: 20px 0 10px;
 }*/
+
+#home-button {
+  color: #4fccaf !important;
+}
 
 .page-section + h3 span {
 	color: #fff;

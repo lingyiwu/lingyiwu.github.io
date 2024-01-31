@@ -1,0 +1,3151 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">  
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta name="description" content="">
+		<meta name="author" content="lingyiwu">
+		<title>lingyiwu | hangman</title>
+		<link rel="stylesheet" href="../static/css/main.css">
+		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/tomorrow-night.min.css">
+		<!-- <link rel="icon" href="../static/img/favicon.png"> -->
+		<!-- <link rel="apple-touch-icon" href="../static/img/apple-touch-icon.png"> -->
+    </head>
+    <body>
+        <div class="container">
+            <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+                <div class="container">
+                    <h1 class="navbar-brand"><a href="../" id="home-button">lingyiwu</a></h1>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarCollapse">
+                        <ul class="navbar-nav ml-auto">
+                            <li class="nav-item"> <a class="nav-link active" href="../">Home</a> </li>
+                            <li class="nav-item"> <a class="nav-link" href="https://github.com/lingyiwu/" target="_blank">GitHub</a> </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+            <main role="main">
+                <div class="jumbotron bg-cover">
+                    <h2>Ling-Yi Wu</h2>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <p class="lead">hangman!</p>
+                        </div>
+                    </div>
+                </div> <!-- end class="jumbotron bg-cover" -->
+                <h3 class="section-title">Source code</h3>
+                <!-- <p class="lead">Hi, I'm Anne Ling-Yi Wu! I'm a senior at Kaohsiung American School, in Kaohsiung, Taiwan. I've been studying code since seventh grade.</p> -->
+                <h5 class="text-secondary">Hangman.java (main program)</h5>
+                <pre>
+                    <code class="java" style="height: 500px; overflow-y:scroll;">import java.util.Random; /* for generateWord() */
+import java.util.ArrayList; /* for generateWord() */
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+// import javax.swing.BorderFactory; /* when you need to see how big a panel is */
+// import javax.swing.border.Border; /* see above */
+import java.io.File;  /* Import the File class */
+import java.io.FileNotFoundException;  /* Import this class to handle errors */
+import java.util.Scanner; /* Import the Scanner class to read text files */
+
+/*
+TODO:
+- make good popups for toggling mode
+- money/points system (wagering?)
+- choose-a-background (AFTER other stuff)
+- confetti?
+*/
+
+@SuppressWarnings("serial")
+public class Hangman extends JFrame implements WindowListener, ActionListener, KeyListener, MouseMotionListener {
+    private final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private final Color TRANSPARENT = new Color(0, 0, 0, 0);
+    private String word;
+    private boolean[] clicked = new boolean[26];
+    private JButton[] blankList;
+    private JButton[] letterList;
+    private int errors;
+    private String gameStatus = "deciding mode";
+    private JLabel hmImage;
+    private JPanel panelImg;
+    private JPanel panel;
+    private GridBagConstraints c = new GridBagConstraints();
+    private Font btnFont = new Font("Courier", Font.PLAIN, 20);
+    private Font largerFont = new Font("Courier", Font.PLAIN, 30);
+    private boolean em; /* tracks the mode being used */
+    private String mode1 = "Normal"; /* name for the 'easier' mode */
+    private String mode2 = "Harder"; /* name for the 'harder' mode */
+    private int background = 1;
+    // private Popup popup1;
+    // private Popup popup2;
+    private String generateWord() {
+        int wordCount = 0;
+        ArrayList&lt;String&gt; wordList = new ArrayList&lt;String&gt;();
+        try {
+            File wordBank = new File("hangwords.txt");
+            Scanner cin = new Scanner(wordBank);
+            while (cin.hasNextLine()) {
+                wordList.add(cin.nextLine());
+                wordCount += 1;
+            }
+            cin.close();
+            int randomNum = (int)(Math.random() * wordCount);
+            return wordList.get(randomNum).toUpperCase();
+        } catch (FileNotFoundException e) {
+            System.out.println("An error occurred trying to get hangwords.txt.");
+            e.printStackTrace();
+            return null;
+        }
+    }
+    private boolean isAllFound() {
+        for (JButton b : blankList) {
+            if (b.getText().equals("_")) {
+                return false;
+            }
+        }
+        return true;
+    }
+    private void typeLetter(String letter) {
+        int index, i; boolean found;
+        index = ALPHABET.indexOf(letter);
+        if (index >= 0 && clicked[index] == false) {
+            clicked[index] = true;
+            letterList[index].setBackground(Color.GRAY);
+            found = false;
+            for (i = 0; i < word.length(); i++) {
+                if (letter.equals(word.substring(i, i + 1))) {
+                    found = true;
+                    blankList[i].setText(letter);
+                }
+            }
+            if (isAllFound()) {
+                gameStatus = "won";
+                endScreen();
+            }
+            else if (!found) {
+                /* hangman progresses a step */
+                errors += 1;
+                if (!em) {
+                    if (errors == 3 || errors == 5) {
+                        errors += 1;
+                    }
+                }
+                hmImage.setIcon(new ImageIcon("hmImages/hmProgression" + errors + ".png"));
+                if (errors >= 7) {
+                    gameStatus = "lost";
+                    endScreen();
+                }
+            }
+        }
+    }
+    public Hangman() {
+        /* just sets up the basis for the deciding-modes panel, then the actual board is set up in startupHangman() and resetHangman() after mode btn is clicked */
+        panel = new JPanel();
+        setSize(1100, 750);
+        /* center */
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setResizable(false);
+        c.insets = new Insets(0, 20, 0, 20); /* spaces btns apart */
+        // c.anchor = GridBagConstraints.PAGE_START;
+        decideMode();
+    }
+    public void decideMode() {
+        panel.removeAll();
+        panel.validate();
+        panel.repaint();
+        GridBagConstraints bigGrid = new GridBagConstraints();
+        GridBagConstraints modeGrid = new GridBagConstraints();
+        /* set up title card (JLabel title) */
+        JLabel title = new JLabel(new ImageIcon("hmImages/hmTitle.png"));
+        title.setOpaque(true);
+        title.setBackground(TRANSPARENT);
+        JPanel panelTitle = new JPanel();
+        panelTitle.setBackground(TRANSPARENT);
+        panelTitle.setLayout(new GridBagLayout());
+        panelTitle.add(title);
+        /* set up prompt (JLabel modeText) */
+        JLabel modeText = new JLabel("[Play in " + mode1 + " or " + mode2 + " Mode?]");
+        modeText.setVerticalTextPosition(JLabel.BOTTOM);
+        modeText.setHorizontalTextPosition(JLabel.CENTER);
+        modeText.setFont(largerFont);
+        modeText.setOpaque(true);
+        modeText.setBackground(TRANSPARENT);
+        JPanel panelMode = new JPanel();
+        panelMode.setBackground(TRANSPARENT);
+        panelMode.setLayout(new GridBagLayout());
+        panelMode.add(modeText);
+        /* consolidate title & prompt */
+        JPanel panelTxt = new JPanel();
+        panelTxt.setLayout(new GridBagLayout());
+        panelTxt.setBackground(TRANSPARENT);
+        modeGrid.gridx = 0;
+        modeGrid.gridy = 0;
+        modeGrid.gridwidth = 3;
+        modeGrid.gridheight = 1;
+        modeGrid.ipady = 50;
+        panelTxt.add(panelTitle, modeGrid);
+        modeGrid.gridx = 1;
+        modeGrid.gridy = 1;
+        modeGrid.gridwidth = 1;
+        modeGrid.gridheight = 2;
+        modeGrid.ipady = 50;
+        panelTxt.add(panelMode, modeGrid);
+        /* add title & prompt to panel */
+        bigGrid.gridx = 0;
+        bigGrid.gridy = 0;
+        bigGrid.gridheight = 3;
+        panel.add(panelTxt, bigGrid);
+        /* set up mode btns (btnMode1 and btnMode2) + panel for btns */
+            /* btnMode1: */
+        JButton btnMode1 = new JButton(mode1);
+        btnMode1.setFont(largerFont);
+        btnMode1.setForeground(Color.BLACK);
+        btnMode1.setBackground(Color.WHITE);
+        btnMode1.setOpaque(true);
+        btnMode1.setBorderPainted(false);
+        btnMode1.addActionListener(this);
+            /* btnMode2: */
+        JButton btnMode2 = new JButton(mode2);
+        btnMode2.setFont(largerFont);
+        btnMode2.setForeground(Color.BLACK);
+        btnMode2.setBackground(Color.WHITE);
+        btnMode2.setOpaque(true);
+        btnMode2.setBorderPainted(false);
+        btnMode2.addActionListener(this);
+            /* panel for btns: */
+        JPanel panelBtns = new JPanel();
+        panelBtns.setLayout(new GridBagLayout());
+        panelBtns.setBackground(TRANSPARENT);
+        modeGrid.insets = new Insets(0, 20, 0, 20);
+        modeGrid.anchor = GridBagConstraints.PAGE_START;
+        modeGrid.ipady = 0;
+        modeGrid.gridwidth = 1;
+        modeGrid.gridheight = 1;
+        modeGrid.gridx = 0;
+        modeGrid.gridy = 0;
+        panelBtns.add(btnMode1, modeGrid);
+        modeGrid.gridx = 1;
+        modeGrid.gridy = 0;
+        panelBtns.add(btnMode2, modeGrid);
+        /* add panelBtns to panel */
+        bigGrid.gridx = 0;
+        bigGrid.gridy = 1;
+        bigGrid.gridheight = 3;
+        panel.add(panelBtns, bigGrid);
+        /* add lil btn */
+        // JButton btnLil = new JButton(new ImageIcon(""))
+        /* set up formatting/background */
+        setContentPane(new JLabel(new ImageIcon("hmImages/hmBackground" + background + ".png")));
+        setLayout(null);
+        panel.setBackground(TRANSPARENT);
+        panel.setLayout(new GridLayout(2, 1));
+        panel.setBounds(1, 1, 1100, 750);
+        add(panel);
+        setVisible(true);
+        this.addWindowListener(this);
+    }
+    public void startupHangman() {
+        hmImage = new JLabel(new ImageIcon("hmImages/hmProgression0.png"));
+        hmImage.setVerticalTextPosition(JLabel.BOTTOM);
+        hmImage.setHorizontalTextPosition(JLabel.CENTER);
+        hmImage.setFont(btnFont);
+        hmImage.setOpaque(true);
+        add(panel);
+    }
+    public void resetHangman() {
+        int i;
+        setVisible(false);
+        panel.removeAll();
+        panel.validate();
+        panel.repaint();
+        hmImage.setText("");
+        hmImage.setIcon(new ImageIcon("hmImages/hmProgression0.png"));
+        panelImg = new JPanel();
+        panelImg.setBackground(TRANSPARENT);
+        panelImg.setLayout(new GridBagLayout());
+        panelImg.add(hmImage);
+        panel.add(panelImg);
+        /* create blanks for letters to be filled in */
+        JPanel panelBlanks = new JPanel();
+        word = generateWord();
+        blankList = new JButton[word.length()];
+        for (i = 0; i < word.length(); i++) {
+            JButton btnBlank = new JButton("_");
+            btnBlank.setFont(largerFont);
+            btnBlank.setForeground(Color.BLACK);
+            btnBlank.setBackground(Color.WHITE);
+            btnBlank.setOpaque(true);
+            btnBlank.setBorderPainted(false);
+            btnBlank.addActionListener(this);
+            btnBlank.addKeyListener(this);
+            blankList[i] = btnBlank;
+            panelBlanks.add(blankList[i]);
+        }
+        panelBlanks.setBackground(TRANSPARENT);
+        panel.add(panelBlanks);
+        /* create letter keyboard */
+        JPanel panelLetters = new JPanel();
+        letterList = new JButton[26];
+        for (i = 0; i < 26; i++) {
+            clicked[i] = false;
+            JButton btnLetter = new JButton(ALPHABET.substring(i, i + 1));
+            btnLetter.setFont(btnFont);
+            btnLetter.setForeground(Color.BLACK);
+            btnLetter.setBackground(Color.WHITE);
+            btnLetter.setOpaque(true);
+            btnLetter.setBorderPainted(false);
+            btnLetter.addActionListener(this);
+            btnLetter.addKeyListener(this);
+            letterList[i] = btnLetter;
+            panelLetters.add(letterList[i]);
+        }
+        panelLetters.setBackground(TRANSPARENT);
+        panel.add(panelLetters);
+        errors = 0;
+        setLayout(null);
+        panel.setBackground(TRANSPARENT);
+        panel.setLayout(new GridLayout(3, 1));
+        panel.setBounds(1, 1, 1100, 750);
+        gameStatus = "in progress";
+        setVisible(true);
+    }
+    public void endScreen() {
+        setVisible(false);
+        panel.removeAll();
+        panel.validate();
+        panel.repaint();
+        panel.addMouseMotionListener(this);
+        if (gameStatus.equals("won")) {
+            /* won this game */
+            /* set hmImage to 'win' version */
+            hmImage.setIcon(new ImageIcon("hmImages/freestickman.png"));
+            hmImage.setText("&lt;html&gt;&lt;br /&gt;You win!&lt;/html&gt;");
+        }
+        else {
+            /* lost this game */
+            /* set hmImage to 'loss' version */
+            hmImage.setIcon(new ImageIcon("hmImages/hmProgression7.png"));
+            hmImage.setText("&lt;html&gt;&lt;br /&gt;You lose!&lt;/html&gt;");
+        }
+        /* add hmImage to panelImg to panel */
+        panelImg = new JPanel();
+        panelImg.setBackground(TRANSPARENT);
+        panelImg.setLayout(new GridBagLayout());
+        panelImg.add(hmImage);
+        panel.add(panelImg);
+        /* make new GridBagConstraints so there's space between btns in panelBtns */
+        /* add reset btn to panel */
+        JButton btnReset = new JButton("Play Again");
+        btnReset.setFont(largerFont);
+        btnReset.setOpaque(true);
+        btnReset.setBorderPainted(false);
+        btnReset.setForeground(Color.BLACK);
+        btnReset.setBackground(Color.WHITE);
+        btnReset.addActionListener(this);
+        /* add mode btn to panel */
+        JButton btnMode = new JButton("");
+        btnMode.setFont(largerFont);
+        btnMode.setOpaque(true);
+        btnMode.setBorderPainted(false);
+        btnMode.setForeground(Color.BLACK);
+        if (em) {
+            btnMode.setBackground(Color.PINK);
+            btnMode.setText("Use " + mode2 + " Mode");
+        }
+        else {
+            btnMode.setBackground(Color.CYAN);
+            btnMode.setText("Use " + mode1 + " Mode");
+        }
+        btnMode.addActionListener(this);
+        /* add quit btn to panel */
+        JButton btnQuit = new JButton("Quit :(");
+        btnQuit.setFont(largerFont);
+        btnQuit.setOpaque(true);
+        btnQuit.setBorderPainted(false);
+        btnQuit.setForeground(Color.BLACK);
+        btnQuit.setBackground(Color.WHITE);
+        btnQuit.addActionListener(this);
+        /* consolidate control btns */
+        JPanel panelBtns = new JPanel();
+        panelBtns.setBackground(TRANSPARENT);
+        panelBtns.setLayout(new GridBagLayout());
+        panelBtns.add(btnReset, c);
+        panelBtns.add(btnMode, c);
+        panelBtns.add(btnQuit, c);
+        panel.add(panelBtns);
+        /* set up background */
+        setLayout(null);
+        panel.setBackground(TRANSPARENT);
+        panel.setLayout(new GridLayout(2, 1));
+        panel.setBounds(1, 1, 1100, 750);
+        setVisible(true);
+    }
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() instanceof JButton) {
+            /* was not triggered by a Timer event */
+            JButton btn = (JButton)e.getSource();
+            if (gameStatus.equals("deciding mode")) {
+                if (btn.getText().equals(mode1)) {
+                    em = true;
+                }
+                else {
+                    em = false;
+                }
+                gameStatus = "in progress";
+                startupHangman(); /* sets up formatting & deals with background */
+                resetHangman(); /* makes the actual board */
+            }
+            else if (gameStatus.equals("won") || gameStatus.equals("lost")) {
+                if (btn.getText().equals("Play Again")) {
+                    /* resets the game */
+                    System.out.println("Solution: \"" + word + "\"");
+                    resetHangman();
+                    System.out.println("Reset!");
+                }
+                else if (btn.getText().equals("Quit :(")) {
+                    /* quits the game */
+                    windowClosing(null);
+                }
+                else {
+                    /* toggles the mode setting */
+                    em = !em;
+                    if (btn.getBackground().equals(Color.PINK)) {
+                        btn.setBackground(Color.CYAN);
+                        btn.setText("Use " + mode1 + " Mode");
+                        // JOptionPane.showMessageDialog(panel, "Switched to " + mode2 + " Mode!"); /* ask mr. pilon! */
+
+                        // Point position = MouseInfo.getPointerInfo().getLocation();
+                        // Point current = position;
+                        // while (position.equals(current)) {
+                        //     current = MouseInfo.getPointerInfo().getLocation();
+                        // }
+                        // System.out.println("moved");
+                    }
+                    else if (btn.getBackground().equals(Color.CYAN)) {
+                        btn.setBackground(Color.PINK);
+                        btn.setText("Use " + mode2 + " Mode");
+                        // JOptionPane.showMessageDialog(panel, "Switched to " + mode1 + " Mode!"); /* ask mr. pilon! */
+
+                        // Point position = MouseInfo.getPointerInfo().getLocation();
+                        // Point current = position;
+                        // while (position.equals(current)) {
+                        //     current = MouseInfo.getPointerInfo().getLocation();
+                        // }
+                        // System.out.println("moved");
+                    }
+                }
+            }
+            else if (gameStatus.equals("in progress")) {
+                if (!btn.getText().equals("_")) {
+                    /* a letter key was clicked */
+                    typeLetter(btn.getText());
+                }
+            }
+            else {
+                /* gameStatus isn't any of these! */
+                System.out.println("error: gameStatus was unexpected value \"" + gameStatus + "\"");
+                windowClosing(null);
+            }
+        }
+        else {
+            // System.out.println("timer fired!");
+        }
+    }
+    public void mouseMoved(MouseEvent e) {
+        // Component comp = e.getComponent();
+        // if (comp.equals((Component)(hmImage))) {
+        //     System.out.println("on hmImage");
+        // }
+        // System.out.println("moved: " + e.getComponent());
+    }
+    public void mouseDragged(MouseEvent e) {
+        /* mouse was dragged */
+    }
+    public void keyTyped(KeyEvent e) {
+        /* key was typed (pressed and released) */
+        String letter;
+        letter = Character.toString(e.getKeyChar());
+        letter = letter.toUpperCase();
+        typeLetter(letter);
+    }
+    public void keyPressed(KeyEvent e) {
+        /* key was pressed */
+    }
+    public void keyReleased(KeyEvent e) {
+        /* key was released */
+    }
+    public void windowClosing(WindowEvent e) {
+        System.out.println("Solution: \"" + word + "\"");
+        dispose();
+        System.exit(0);
+    }
+    public void windowOpened(WindowEvent e) {
+        // System.out.println("opened");
+    }
+    public void windowActivated(WindowEvent e) {
+        // System.out.println("activated");
+    }
+    public void windowIconified(WindowEvent e) {
+        // System.out.println("iconified");
+    }
+    public void windowDeiconified(WindowEvent e) {
+        // System.out.println("deiconified");
+    }
+    public void windowDeactivated(WindowEvent e) {
+        // System.out.println("deactivated");
+    }
+    public void windowClosed(WindowEvent e) {
+        // System.out.println("closed");
+    }
+    public static void main(String[] args) {
+        @SuppressWarnings("unused") Hangman h = new Hangman();
+    }
+}
+
+@SuppressWarnings("serial")
+class BackgroundPanel extends JPanel {
+    private Image bgImage;
+    public BackgroundPanel(String imgPath) {
+        this(new ImageIcon(imgPath).getImage());
+    }
+    public BackgroundPanel(Image img) {
+        bgImage = img;
+        Dimension size = new Dimension(bgImage.getWidth(null), bgImage.getHeight(null));
+        setPreferredSize(size);
+        setMinimumSize(size);
+        setMaximumSize(size);
+        setSize(size);
+        setLayout(null);
+    }
+    public void paintComponent(Graphics g) {
+        g.drawImage(bgImage, 0, 0, null);
+    }
+}
+                    </code>
+                </pre>
+                <h5 class="text-secondary">hangwords.txt (word bank)</h5>
+                <pre>
+                    <code class="markdown" style="height: 500px; overflow-y:scroll;">abandon
+abandoned
+ability
+about
+above
+abroad
+absence
+absent
+absolute
+absolutely
+absorb
+abuse
+academic
+accent
+accept
+acceptable
+access
+accident
+accidental
+accidentally
+accommodation
+accompany
+account
+accurate
+accurately
+accuse
+achieve
+achievement
+acknowledge
+acquire
+across
+action
+active
+actively
+activity
+actor
+actress
+actual
+actually
+adapt
+addition
+additional
+address
+adequate
+adequately
+adjust
+admiration
+admire
+admit
+adopt
+adult
+advance
+advanced
+advantage
+adventure
+advert
+advertise
+advertisement
+advertising
+advice
+advise
+affair
+affect
+affection
+afford
+after
+afternoon
+afterwards
+again
+against
+agency
+agent
+aggressive
+agree
+agreement
+ahead
+aircraft
+airport
+alarm
+alarmed
+alarming
+alcohol
+alcoholic
+alive
+allied
+allow
+almost
+alone
+along
+alongside
+aloud
+alphabet
+alphabetical
+alphabetically
+already
+alter
+alternative
+alternatively
+although
+altogether
+always
+amaze
+amazed
+amazing
+ambition
+ambulance
+among
+amount
+amuse
+amused
+amusing
+analysis
+ancient
+anger
+angle
+angrily
+angry
+animal
+ankle
+anniversary
+announce
+annoy
+annoyed
+annoying
+annual
+annually
+another
+answer
+anticipate
+anxiety
+anxious
+anxiously
+anybody
+anyone
+anything
+anyway
+anywhere
+apart
+apartment
+apologize
+apparent
+apparently
+appeal
+appear
+appearance
+apple
+application
+apply
+appoint
+appointment
+appreciate
+approach
+appropriate
+approval
+approve
+approving
+approximate
+approximately
+argue
+argument
+arise
+armed
+around
+arrange
+arrangement
+arrest
+arrival
+arrive
+arrow
+article
+artificial
+artificially
+artist
+artistic
+artistically
+ashamed
+aside
+asleep
+aspect
+assist
+assistance
+assistance
+associate
+associated
+association
+assume
+assure
+atmosphere
+attach
+attached
+attack
+attempt
+attempted
+attend
+attention
+attitude
+attorney
+attract
+attraction
+attractive
+audience
+author
+authority
+automatic
+automatically
+autumn
+available
+average
+avoid
+awake
+award
+aware
+awful
+awfully
+awkward
+awkwardly
+background
+backward
+backwards
+bacteria
+badly
+baggage
+balance
+bandage
+bargain
+barrier
+based
+basic
+basically
+basis
+bathroom
+battery
+battle
+beach
+beard
+beautiful
+beautifully
+beauty
+because
+become
+bedroom
+before
+begin
+beginning
+behalf
+behave
+behind
+belief
+believe
+belong
+below
+beneath
+benefit
+beside
+better
+betting
+between
+beyond
+bicycle
+billion
+biology
+birth
+birthday
+biscuit
+bitter
+bitterly
+black
+blade
+blame
+blank
+blind
+block
+blond
+blood
+blowout
+board
+border
+bored
+boring
+borrow
+bother
+bottle
+bottom
+bound
+boyfriend
+brain
+branch
+brand
+brave
+bread
+break
+breakfast
+breast
+breath
+breathe
+breathing
+breed
+brick
+bridge
+brief
+briefly
+bright
+brightly
+brilliant
+bring
+broad
+broadcast
+broadly
+broken
+brother
+brown
+brush
+bubble
+budget
+build
+building
+bullet
+bunch
+burnt
+burst
+business
+butter
+button
+buyer
+cabinet
+cable
+calculate
+calculation
+called
+calmly
+camera
+campaign
+camping
+cancel
+cancer
+candidate
+candy
+cannot
+capable
+capacity
+capital
+captain
+capture
+cardboard
+career
+careful
+carefully
+careless
+carelessly
+carpet
+carrot
+carry
+castle
+catch
+category
+cause
+cease
+ceiling
+celebrate
+celebration
+central
+century
+ceremony
+certain
+certainly
+certificate
+chain
+chair
+challenge
+chamber
+chance
+change
+channel
+chapter
+character
+characteristic
+charge
+charity
+chart
+chase
+cheap
+cheaply
+cheat
+check
+cheerful
+cheerfully
+cheese
+chemical
+chemist
+chemistry
+chest
+chicken
+chief
+child
+chocolate
+choice
+choose
+church
+cigarette
+cinema
+circle
+circumstance
+citizen
+civil
+claim
+class
+classic
+classroom
+clean
+clear
+clearly
+clerk
+clever
+click
+client
+climate
+climb
+climbing
+clock
+close
+closed
+closely
+closet
+cloth
+clothes
+clothing
+cloud
+club
+coach
+coast
+coffee
+coldly
+collapse
+colleague
+collect
+collection
+college
+column
+combination
+combine
+comedy
+comfort
+comfortable
+comfortably
+command
+comment
+commercial
+commission
+commit
+commitment
+committee
+common
+commonly
+communicate
+communication
+community
+company
+compare
+comparison
+complete
+competition
+competitive
+complain
+complaint
+complete
+completely
+complex
+complicate
+complicated
+computer
+concentrate
+concentration
+concept
+concern
+concerned
+concerning
+concert
+conclude
+conclusion
+concrete
+condition
+conduct
+conference
+confidence
+confident
+confidently
+confine
+confined
+confirm
+conflict
+confront
+confuse
+confused
+confusing
+confusion
+congratulate
+congratulation
+congress
+connect
+connected
+connection
+conscious
+consequence
+conservative
+consider
+considerable
+considerably
+consideration
+consist
+constant
+constantly
+construct
+construction
+consult
+consumer
+contact
+contain
+container
+contemporary
+content
+contest
+context
+continent
+continue
+continuous
+continuously
+contract
+contrast
+contrasting
+contribute
+contribution
+control
+controlled
+convenient
+convention
+conventional
+conversation
+convert
+convince
+cooker
+cookie
+cooking
+corner
+correct
+correctly
+cottage
+cotton
+cough
+coughing
+could
+council
+count
+counter
+country
+countryside
+county
+couple
+courage
+course
+court
+cousin
+cover
+covered
+covering
+crack
+craft
+crash
+crazy
+cream
+create
+creature
+credit
+crime
+criminal
+crisis
+crisp
+criterion
+critical
+criticism
+criticize
+cross
+crowd
+crowded
+crown
+crucial
+cruel
+crush
+cultural
+culture
+cupboard
+curious
+curiously
+curly
+current
+currently
+curtain
+curve
+curved
+custom
+customer
+customs
+cycle
+daily
+damage
+dance
+dancer
+dancing
+danger
+dangerous
+daughter
+death
+debate
+decade
+decay
+decide
+decision
+declare
+decline
+decorate
+decoration
+decorative
+decrease
+deeply
+defeat
+defence
+defend
+define
+definite
+definitely
+delicate
+delight
+delighted
+deliver
+delivery
+demand
+demonstrate
+dentist
+department
+departure
+depend
+deposit
+depress
+depressed
+depressing
+depth
+derive
+describe
+description
+desert
+deserted
+deserve
+design
+desire
+desperate
+desperately
+despite
+destroy
+destruction
+detail
+detailed
+determination
+determined
+develop
+development
+device
+devote
+devoted
+diagram
+diamond
+diary
+dictionary
+difference
+different
+differently
+difficult
+difficultly
+digital
+dinner
+direct
+direction
+directly
+director
+dirty
+disabled
+disadvantage
+disagree
+disagreement
+disappear
+disappoint
+disappointed
+disappointing
+disappointment
+disapproval
+disapprove
+disapproving
+disaster
+discipline
+discount
+discover
+discovery
+discuss
+discussion
+disease
+disgust
+disgusted
+disgusting
+dishonest
+dishonestly
+dislike
+dismiss
+display
+dissolve
+distance
+distinguish
+distribute
+distribution
+district
+disturb
+disturbing
+divide
+division
+divorce
+divorced
+doctor
+document
+dollar
+domestic
+dominate
+double
+doubt
+downstairs
+downward
+downwards
+dozen
+draft
+drama
+dramatic
+dramatically
+drawer
+drawing
+dream
+dress
+dressed
+drink
+drive
+driver
+driving
+drugstore
+drunk
+during
+dying
+early
+earth
+easily
+eastern
+economic
+economy
+edition
+editor
+educate
+educated
+education
+effect
+effective
+effectively
+efficient
+efficiently
+effort
+eight
+eighteen
+eighth
+eightieth
+eighty
+either
+elbow
+elderly
+elect
+election
+electric
+electrical
+electricity
+electronic
+elegant
+element
+elevator
+eleven
+eleventh
+elsewhere
+email
+embarrass
+embarrassed
+embarrassing
+embarrassment
+emerge
+emergency
+emotion
+emotional
+emotionally
+emphasis
+emphasize
+empire
+employ
+employee
+employer
+employment
+empty
+enable
+encounter
+encourage
+encouragement
+ending
+enemy
+energy
+engage
+engaged
+engine
+engineer
+engineering
+enjoy
+enjoyable
+enjoyment
+enormous
+enough
+enquiry
+ensure
+enter
+entertain
+entertainer
+entertaining
+entertainment
+enthusiasm
+enthusiastic
+enthusiastically
+entire
+entirely
+entitle
+entrance
+entry
+envelope
+environment
+environmental
+equal
+equally
+equipment
+equivalent
+error
+escape
+especially
+essay
+essential
+essentially
+establish
+estate
+estimate
+evening
+event
+eventually
+every
+everybody
+everyone
+everything
+everywhere
+evidence
+exact
+exactly
+exaggerate
+exaggerated
+examination
+examine
+example
+excellent
+except
+exception
+exchange
+excite
+excited
+excitement
+exciting
+exclude
+excluding
+excuse
+executive
+exercise
+exhibit
+exhibition
+exist
+existence
+expand
+expect
+expectation
+expected
+expense
+expensive
+experience
+experienced
+experiment
+expert
+explain
+explanation
+explode
+explore
+explosion
+export
+expose
+express
+expression
+extend
+extension
+extensive
+extent
+extra
+extraordinary
+extreme
+extremely
+facility
+factor
+factory
+failure
+faint
+faintly
+fairly
+faith
+faithful
+faithfully
+false
+familiar
+family
+famous
+fancy
+farmer
+farming
+farther
+farthest
+fashion
+fashionable
+fasten
+father
+faucet
+fault
+feather
+feature
+federal
+feeling
+fellow
+female
+fence
+festival
+fetch
+fever
+field
+fifteen
+fifteenth
+fifth
+fiftieth
+fifty
+fight
+fighting
+figure
+final
+finally
+finance
+financial
+finely
+finger
+finish
+finished
+firmly
+first
+fishing
+fixed
+flame
+flash
+flavour
+flesh
+flight
+float
+flood
+flooded
+flooding
+floor
+flour
+flower
+flying
+focus
+folding
+follow
+following
+football
+force
+forecast
+foreign
+forest
+forever
+forget
+forgive
+formal
+formally
+former
+formerly
+formula
+fortieth
+fortune
+forty
+forward
+found
+foundation
+fourteen
+fourteenth
+fourth
+frame
+freedom
+freely
+freeze
+frequent
+frequently
+fresh
+freshly
+fridge
+friend
+friendly
+friendship
+frighten
+frightened
+frightening
+front
+frozen
+fruit
+fully
+function
+fundamental
+funeral
+funny
+furniture
+further
+future
+gallon
+gamble
+gambling
+garage
+garbage
+garden
+gasoline
+gather
+general
+generally
+generate
+generation
+generous
+generously
+gentle
+gentleman
+gently
+genuine
+genuinely
+geography
+giant
+girlfriend
+glass
+global
+glove
+goodbye
+goods
+govern
+government
+governor
+grade
+gradual
+gradually
+grain
+grammar
+grand
+grandchild
+granddaughter
+grandfather
+grandmother
+grandparent
+grandson
+grant
+grass
+grateful
+grave
+gravely
+great
+greatly
+green
+grocery
+ground
+group
+growth
+guarantee
+guard
+guess
+guest
+guide
+guilty
+habit
+hairdresser
+hammer
+handle
+happen
+happily
+happiness
+happy
+hardly
+harmful
+harmless
+headache
+health
+healthy
+hearing
+heart
+heating
+heavily
+heavy
+height
+helpful
+hence
+herself
+hesitate
+highlight
+highly
+highway
+himself
+historical
+history
+hobby
+holiday
+hollow
+homework
+honest
+honestly
+honor
+horizontal
+horror
+horse
+hospital
+hotel
+house
+household
+housing
+however
+human
+hundred
+hundredth
+hungry
+hunting
+hurry
+husband
+ideal
+identify
+ignore
+illegal
+illegally
+illness
+illustrate
+image
+imaginary
+imagination
+imagine
+immediate
+immediately
+immoral
+impact
+impatient
+implication
+imply
+import
+importance
+important
+importantly
+impose
+impossible
+impress
+impressed
+impression
+impressive
+improve
+improvement
+inability
+inch
+incident
+include
+including
+income
+increase
+increasingly
+indeed
+independence
+independent
+independently
+index
+indicate
+indication
+indirect
+indirectly
+individual
+indoor
+indoors
+industrial
+industry
+inevitable
+inevitably
+infect
+infected
+infection
+infectious
+influence
+inform
+informal
+information
+ingredient
+initial
+initially
+initiative
+injure
+injured
+injury
+inner
+innocent
+insect
+insert
+inside
+insist
+install
+instance
+instead
+institute
+instruction
+instrument
+insult
+insulting
+insurance
+intelligence
+intelligent
+intend
+intended
+intention
+interest
+interested
+interesting
+interior
+internal
+international
+internet
+interpret
+interpretation
+interrupt
+interruption
+interval
+interview
+introduce
+introduction
+invent
+invention
+invest
+investigate
+investigation
+investment
+invitation
+invite
+involve
+involved
+involvement
+irritate
+irritated
+irritating
+island
+issue
+itself
+jacket
+jealous
+jeans
+jelly
+jewellery
+joint
+jointly
+journalist
+journey
+judge
+judgement
+juice
+junior
+justice
+justified
+justify
+keyboard
+killing
+kilogram
+kilometre
+kindly
+kindness
+kitchen
+knife
+knitted
+knitting
+knock
+knowledge
+label
+laboratory
+labor
+lacking
+landscape
+language
+large
+largely
+later
+latest
+latter
+laugh
+launch
+lawyer
+layer
+leader
+leading
+league
+learn
+least
+leather
+leave
+lecture
+legal
+legally
+lemon
+length
+lesson
+letter
+level
+library
+licence
+license
+light
+lightly
+likely
+limit
+limited
+liquid
+listen
+literature
+litre
+little
+lively
+living
+local
+locally
+locate
+located
+location
+logic
+logical
+lonely
+loose
+loosely
+loudly
+lovely
+lover
+loyal
+lucky
+luggage
+lunch
+machine
+machinery
+magazine
+magic
+mainly
+maintain
+major
+majority
+manage
+management
+manager
+manner
+manufacture
+manufacturer
+manufacturing
+march
+market
+marketing
+marriage
+married
+marry
+massive
+master
+match
+matching
+material
+mathematics
+matter
+maximum
+maybe
+mayor
+meaning
+means
+meanwhile
+measure
+measurement
+media
+medical
+medicine
+medium
+meeting
+member
+membership
+memory
+mental
+mentally
+mention
+merely
+message
+metal
+method
+meter
+middle
+midnight
+might
+military
+milligram
+millimeter
+million
+millionth
+mineral
+minimum
+minister
+ministry
+minor
+minority
+minute
+mirror
+missing
+mistake
+mistaken
+mixed
+mixture
+mobile
+model
+modern
+moment
+money
+monitor
+month
+moral
+morally
+moreover
+morning
+mostly
+mother
+motion
+motor
+motorbike
+motorcycle
+mount
+mountain
+mouse
+mouth
+movement
+movie
+moving
+multiply
+murder
+muscle
+museum
+music
+musical
+musician
+myself
+mysterious
+mystery
+naked
+narrow
+nation
+national
+natural
+naturally
+nature
+nearby
+nearly
+neatly
+necessarily
+necessary
+needle
+negative
+neighbor
+neighborhood
+neither
+nephew
+nerve
+nervous
+nervously
+network
+never
+nevertheless
+newly
+newspaper
+nicely
+niece
+night
+nineteen
+nineteenth
+ninetieth
+ninety
+ninth
+nobody
+noise
+noisily
+noisy
+nonsense
+normal
+normally
+north
+northern
+nothing
+notice
+noticeable
+novel
+nowhere
+nuclear
+number
+nurse
+object
+objective
+observation
+observe
+obtain
+obvious
+obviously
+occasion
+occasionally
+occupied
+occupy
+occur
+ocean
+oddly
+offence
+offend
+offense
+offensive
+offer
+office
+officer
+official
+officially
+often
+onion
+online
+opening
+openly
+operate
+operation
+opinion
+opponent
+opportunity
+oppose
+opposed
+opposing
+opposite
+opposition
+option
+orange
+order
+ordinary
+organ
+organization
+organize
+organized
+origin
+original
+originally
+other
+otherwise
+ourselves
+outdoors
+outer
+outline
+output
+outside
+outstanding
+overall
+overcome
+owner
+package
+packaging
+packet
+painful
+paint
+painter
+painting
+palace
+panel
+pants
+paper
+parallel
+parent
+parliament
+particular
+particularly
+partly
+partner
+partnership
+party
+passage
+passenger
+passing
+passport
+patience
+patient
+pattern
+pause
+payment
+peace
+peaceful
+pencil
+penny
+pension
+people
+pepper
+perfect
+perfectly
+perform
+performance
+performer
+perhaps
+period
+permanent
+permanently
+permission
+permit
+person
+personal
+personality
+personally
+persuade
+petrol
+phase
+philosophy
+phone
+photo
+photocopy
+photograph
+photographer
+photography
+phrase
+physical
+physically
+physics
+piano
+picture
+piece
+pilot
+place
+plain
+plane
+planet
+planning
+plant
+plastic
+plate
+platform
+player
+pleasant
+pleasantly
+please
+pleased
+pleasing
+pleasure
+plenty
+pocket
+poetry
+point
+pointed
+poison
+poisonous
+police
+policy
+polish
+polite
+politely
+political
+politically
+politician
+politics
+pollution
+popular
+population
+position
+positive
+possess
+possession
+possibility
+possible
+possibly
+potato
+potential
+potentially
+pound
+powder
+power
+powerful
+practical
+practically
+practice
+praise
+prayer
+precise
+precisely
+predict
+prefer
+preference
+pregnant
+premises
+preparation
+prepare
+prepared
+presence
+present
+presentation
+preserve
+president
+press
+pressure
+presumably
+pretend
+pretty
+prevent
+previous
+previously
+price
+priest
+primarily
+primary
+prince
+princess
+principle
+print
+printer
+printing
+prior
+priority
+prison
+prisoner
+private
+privately
+prize
+probable
+probably
+problem
+procedure
+proceed
+process
+produce
+producer
+product
+production
+profession
+professional
+professor
+profit
+program
+progress
+project
+promise
+promote
+promotion
+prompt
+promptly
+pronounce
+pronunciation
+proof
+proper
+property
+proportion
+proposal
+propose
+prospect
+protect
+protection
+protest
+proud
+proudly
+prove
+provide
+provided
+providing
+public
+publication
+publicity
+publicly
+publish
+publishing
+punch
+punish
+punishment
+pupil
+purchase
+purely
+purple
+purpose
+pursue
+qualification
+qualified
+qualify
+quality
+quantity
+quarter
+queen
+question
+quick
+quickly
+quiet
+quietly
+quite
+quote
+racing
+radio
+railroad
+railway
+raise
+range
+rapid
+rapidly
+rarely
+rather
+reach
+react
+reaction
+reader
+reading
+ready
+realistic
+reality
+realize
+really
+reason
+reasonable
+reasonably
+recall
+receipt
+receive
+recent
+recently
+reception
+reckon
+recognition
+recognize
+recommend
+record
+recording
+recover
+reduce
+reduction
+refer
+reference
+reflect
+reform
+refrigerator
+refusal
+regard
+regarding
+region
+regional
+register
+regret
+regular
+regularly
+regulation
+reject
+relate
+related
+relation
+relationship
+relative
+relatively
+relax
+relaxed
+relaxing
+release
+relevant
+relief
+religion
+religious
+remain
+remaining
+remains
+remark
+remarkable
+remarkably
+remember
+remind
+remote
+removal
+remove
+rented
+repair
+repeat
+repeated
+repeatedly
+replace
+reply
+report
+represent
+representative
+reproduce
+reputation
+request
+require
+requirement
+rescue
+research
+reservation
+reserve
+resident
+resist
+resistance
+resolve
+resort
+resource
+respect
+respond
+response
+responsibility
+responsible
+restaurant
+restore
+restrict
+restricted
+restriction
+result
+retain
+retire
+retired
+retirement
+return
+reveal
+reverse
+review
+revise
+revision
+revolution
+reward
+rhythm
+rider
+ridiculous
+riding
+right
+rightly
+rival
+river
+romantic
+rough
+roughly
+round
+rounded
+route
+routine
+royal
+rubber
+rubbish
+rudely
+ruined
+ruler
+rumor
+runner
+running
+rural
+sadly
+sadness
+safely
+safety
+sailing
+sailor
+salad
+salary
+salty
+sample
+satisfaction
+satisfied
+satisfy
+satisfying
+sauce
+saving
+scale
+scare
+scared
+scene
+schedule
+scheme
+school
+science
+scientific
+scientist
+scissors
+score
+scratch
+scream
+screen
+screw
+search
+season
+second
+secondary
+secret
+secretary
+secretly
+section
+sector
+secure
+security
+select
+selection
+senate
+senator
+senior
+sense
+sensible
+sensitive
+sentence
+separate
+separated
+separately
+separation
+series
+serious
+seriously
+servant
+serve
+service
+session
+settle
+seven
+seventeen
+seventh
+seventieth
+seventy
+several
+severe
+severely
+sewing
+shade
+shadow
+shake
+shall
+shallow
+shame
+shape
+shaped
+share
+sharp
+sharply
+shave
+sheep
+sheet
+shelf
+shell
+shelter
+shift
+shine
+shiny
+shirt
+shock
+shocked
+shocking
+shoot
+shooting
+shopping
+short
+shortly
+should
+shoulder
+shout
+shower
+sideways
+sight
+signal
+signature
+significant
+significantly
+silence
+silent
+silly
+silver
+similar
+similarly
+simple
+simply
+since
+sincere
+sincerely
+singer
+singing
+single
+sister
+situation
+sixteen
+sixth
+sixtieth
+sixty
+skilful
+skilfully
+skill
+skilled
+skirt
+sleep
+sleeve
+slice
+slide
+slight
+slightly
+slope
+slowly
+small
+smart
+smash
+smell
+smile
+smoke
+smoking
+smooth
+smoothly
+snake
+social
+socially
+society
+softly
+software
+soldier
+solid
+solution
+solve
+somebody
+somehow
+someone
+something
+sometimes
+somewhat
+somewhere
+sound
+source
+south
+southern
+space
+spare
+speak
+speaker
+special
+specialist
+specially
+specific
+specifically
+speech
+speed
+spell
+spelling
+spend
+spice
+spicy
+spider
+spirit
+spiritual
+spite
+split
+spoil
+spoken
+spoon
+sport
+spray
+spread
+spring
+square
+squeeze
+stable
+staff
+stage
+stair
+stamp
+stand
+standard
+stare
+start
+state
+statement
+station
+statue
+status
+steadily
+steady
+steal
+steam
+steel
+steep
+steeply
+steer
+stick
+sticky
+stiff
+stiffly
+still
+sting
+stock
+stomach
+stone
+store
+storm
+story
+stove
+straight
+strain
+strange
+strangely
+stranger
+strategy
+stream
+street
+strength
+stress
+stressed
+stretch
+strict
+strictly
+strike
+striking
+string
+strip
+stripe
+striped
+stroke
+strong
+strongly
+structure
+struggle
+student
+studio
+study
+stuff
+stupid
+style
+subject
+substance
+substantial
+substantially
+substitute
+succeed
+success
+successful
+successfully
+sudden
+suddenly
+suffer
+suffering
+sufficient
+sufficiently
+sugar
+suggest
+suggestion
+suitable
+suitcase
+suited
+summary
+summer
+superior
+supermarket
+supply
+support
+supporter
+suppose
+surely
+surface
+surname
+surprise
+surprised
+surprising
+surprisingly
+surround
+surrounding
+surroundings
+survey
+survive
+suspect
+suspicion
+suspicious
+swallow
+swear
+swearing
+sweat
+sweater
+sweep
+sweet
+swell
+swelling
+swimming
+swing
+switch
+swollen
+symbol
+sympathetic
+sympathy
+system
+table
+tablet
+tackle
+target
+taste
+teach
+teacher
+teaching
+technical
+technique
+technology
+telephone
+television
+temperature
+temporarily
+temporary
+tendency
+tension
+tenth
+terrible
+terribly
+thank
+thanks
+theater
+their
+theirs
+theme
+themselves
+theory
+there
+therefore
+thick
+thickly
+thickness
+thief
+thing
+think
+third
+thirsty
+thirteen
+thirteenth
+thirtieth
+thirty
+thorough
+thoroughly
+though
+thought
+thousand
+thousandth
+thread
+threat
+threaten
+threatening
+three
+throat
+through
+throughout
+throw
+thumb
+ticket
+tight
+tightly
+timetable
+tired
+tiring
+title
+today
+together
+toilet
+tomato
+tomorrow
+tongue
+tonight
+tooth
+topic
+total
+totally
+touch
+tough
+tourist
+towards
+towel
+tower
+trace
+track
+trade
+trading
+tradition
+traditional
+traditionally
+traffic
+train
+training
+transfer
+transform
+translate
+translation
+transparent
+transport
+transportation
+travel
+traveller
+treat
+treatment
+trend
+trial
+triangle
+trick
+tropical
+trouble
+trousers
+truck
+truly
+trust
+truth
+tunnel
+twelfth
+twelve
+twentieth
+twenty
+twice
+twist
+twisted
+typical
+typically
+ultimate
+ultimately
+umbrella
+unable
+unacceptable
+uncertain
+uncle
+uncomfortable
+unconscious
+uncontrolled
+under
+underground
+underneath
+understand
+understanding
+underwater
+underwear
+unemployed
+unemployment
+unexpected
+unexpectedly
+unfair
+unfairly
+unfortunate
+unfortunately
+unfriendly
+unhappy
+uniform
+unimportant
+union
+unique
+unite
+united
+universe
+university
+unkind
+unknown
+unless
+unlike
+unlikely
+unload
+unlucky
+unnecessary
+unpleasant
+unreasonable
+unsteady
+unsuccessful
+untidy
+until
+unusual
+unusually
+unwilling
+unwillingly
+upper
+upset
+upsetting
+upstairs
+upward
+upwards
+urban
+urgent
+useful
+useless
+usual
+usually
+vacation
+valid
+valley
+valuable
+value
+variation
+varied
+variety
+various
+vegetable
+vehicle
+venture
+version
+vertical
+victim
+victory
+video
+village
+violence
+violent
+violently
+virtually
+virus
+visible
+vision
+visit
+visitor
+vital
+vocabulary
+voice
+volume
+waist
+waiter
+walking
+wallet
+wander
+warmth
+warning
+washing
+waste
+watch
+water
+weakness
+wealth
+weapon
+weather
+website
+wedding
+weekend
+weekly
+weigh
+weight
+welcome
+western
+whatever
+wheel
+whenever
+where
+whereas
+wherever
+whether
+which
+while
+whisper
+whistle
+white
+whoever
+whole
+whose
+widely
+width
+wildly
+willing
+willingly
+willingness
+window
+winner
+winning
+winter
+withdraw
+within
+without
+witness
+woman
+wonder
+wonderful
+wooden
+worker
+working
+world
+worried
+worry
+worrying
+worse
+worship
+worst
+worth
+would
+wound
+wounded
+wrapping
+wrist
+write
+writer
+writing
+written
+wrong
+wrongly
+yellow
+yesterday
+young
+yours
+yourself
+youth
+zebra</code>
+                </pre>
+            </main>
+            <hr>
+            <footer class="footer">
+                <p>&copy; 2022 lingyiwu</p>
+            </footer>
+        </div> <!-- end class="container" -->
+    </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.6.0/highlightjs-line-numbers.min.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js"></script>
+    <script>
+        hljs.initHighlightingOnLoad();
+        hljs.initLineNumbersOnLoad();
+    </script>
+    <script src="../static/js/copypaste.js"></script>
+</html>
